@@ -69,13 +69,13 @@ jobs:
               -p:Version="$VERSION" \
               -p:AssemblyVersion="$VERSION" \
               -p:FileVersion="$VERSION" \
-              -o "$OUT_DIR"
+              -o "$OUT_DIR" >&2
 
             jq --arg ver "$VERSION" --arg abi "$ABI" --arg ts "$TIMESTAMP" \
               '.version = $ver | .targetAbi = $abi | .timestamp = $ts' \
               meta.json > "$OUT_DIR/meta.json"
 
-            (cd "$OUT_DIR" && zip -r "../$ZIP_NAME" Jellyfin.Plugin.SeerrHomeCarousel.dll meta.json thumb.png)
+            (cd "$OUT_DIR" && zip -r "../$ZIP_NAME" Jellyfin.Plugin.SeerrHomeCarousel.dll meta.json thumb.png) >&2
             md5sum "dist/$ZIP_NAME" | awk '{print toupper($1)}'
           }
 
