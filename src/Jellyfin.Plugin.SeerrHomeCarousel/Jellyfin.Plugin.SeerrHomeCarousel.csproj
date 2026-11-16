@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <JellyfinVersion Condition="'$(JellyfinVersion)' == ''">10.11.0</JellyfinVersion>
+        <TargetFramework Condition="'$(TargetFramework)' == '' and $(JellyfinVersion.StartsWith('10.11'))">net9.0</TargetFramework>
+        <TargetFramework Condition="'$(TargetFramework)' == ''">net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Version>1.0.0.0</Version>
+        <RootNamespace>Jellyfin.Plugin.SeerrHomeCarousel</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Jellyfin.Common" Version="$(JellyfinVersion)" />
+        <PackageReference Include="Jellyfin.Model" Version="$(JellyfinVersion)" />
+        <PackageReference Include="Jellyfin.Controller" Version="$(JellyfinVersion)" />
+        <PackageReference Include="Jellyfin.Data" Version="$(JellyfinVersion)" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Configuration\configPage.html" />
+        <EmbeddedResource Include="Inject\carousel.js" />
+        <EmbeddedResource Include="Inject\carousel.css" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\meta.json" Link="meta.json" CopyToOutputDirectory="Always" />
+    </ItemGroup>
+
+</Project>

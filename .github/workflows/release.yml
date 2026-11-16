@@ -1,0 +1,140 @@
+name: Build & Release Jellyfin Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Plugin version (4-part, e.g. 1.0.0.0)'
+        required: true
+        default: '1.0.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/v}"
+            if [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              VERSION="${TAG}.0"
+            else
+              VERSION="$TAG"
+            fi
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $VERSION"
+
+      - name: Setup .NET 9 and .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+
+      - name: Build and package for Jellyfin 10.11.x and 12.0.x
+        id: build
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          CSPROJ="src/Jellyfin.Plugin.SeerrHomeCarousel/Jellyfin.Plugin.SeerrHomeCarousel.csproj"
+          mkdir -p dist
+
+          build_target() {
+            local JF_VER="$1"
+            local ABI="$2"
+            local TFM="$3"
+            local OUT_DIR="dist/out_${JF_VER}"
+            local ZIP_NAME="Jellyfin.Plugin.SeerrHomeCarousel_${JF_VER}.zip"
+
+            dotnet publish "$CSPROJ" \
+              -c Release \
+              -f "$TFM" \
+              -p:JellyfinVersion="$JF_VER" \
+              -p:Version="$VERSION" \
+              -p:AssemblyVersion="$VERSION" \
+              -p:FileVersion="$VERSION" \
+              -o "$OUT_DIR"
+
+            jq --arg ver "$VERSION" --arg abi "$ABI" --arg ts "$TIMESTAMP" \
+              '.version = $ver | .targetAbi = $abi | .timestamp = $ts' \
+              meta.json > "$OUT_DIR/meta.json"
+
+            (cd "$OUT_DIR" && zip -r "../$ZIP_NAME" Jellyfin.Plugin.SeerrHomeCarousel.dll meta.json)
+            md5sum "dist/$ZIP_NAME" | awk '{print toupper($1)}'
+          }
+
+          MD5_1011=$(build_target "10.11.0" "10.11.0.0" "net9.0")
+          MD5_1200=$(build_target "12.0.0" "12.0.0.0" "net10.0")
+
+          echo "md5_1011=$MD5_1011" >> "$GITHUB_OUTPUT"
+          echo "md5_1200=$MD5_1200" >> "$GITHUB_OUTPUT"
+          echo "timestamp=$TIMESTAMP" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
+          files: |
+            dist/Jellyfin.Plugin.SeerrHomeCarousel_10.11.0.zip
+            dist/Jellyfin.Plugin.SeerrHomeCarousel_12.0.0.zip
+
+      - name: Update manifest.json
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          TAG="v${VERSION}"
+          TS="${{ steps.build.outputs.timestamp }}"
+          REPO="${{ github.repository }}"
+
+          jq --arg ver "$VERSION" \
+             --arg ts "$TS" \
+             --arg url1011 "https://github.com/${REPO}/releases/download/${TAG}/Jellyfin.Plugin.SeerrHomeCarousel_10.11.0.zip" \
+             --arg md5_1011 "${{ steps.build.outputs.md5_1011 }}" \
+             --arg url1200 "https://github.com/${REPO}/releases/download/${TAG}/Jellyfin.Plugin.SeerrHomeCarousel_12.0.0.zip" \
+             --arg md5_1200 "${{ steps.build.outputs.md5_1200 }}" \
+             '.[0].versions = ([
+               {
+                 "version": $ver,
+                 "changelog": "Release \($ver) (Jellyfin 12.x)",
+                 "targetAbi": "12.0.0.0",
+                 "sourceUrl": $url1200,
+                 "checksum": $md5_1200,
+                 "timestamp": $ts,
+                 "dependencies": []
+               },
+               {
+                 "version": $ver,
+                 "changelog": "Release \($ver) (Jellyfin 10.11.x)",
+                 "targetAbi": "10.11.0.0",
+                 "sourceUrl": $url1011,
+                 "checksum": $md5_1011,
+                 "timestamp": $ts,
+                 "dependencies": []
+               }
+             ] + (.[0].versions // []))' manifest.json > manifest.tmp.json
+
+          mv manifest.tmp.json manifest.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add manifest.json
+          git commit -m "Update manifest.json for v${VERSION} [skip ci]" || true
+          git push origin main

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>SeerrHomeCarousel</title>
+</head>
+<body>
+    <div id="SeerrHomeCarouselConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="SeerrHomeCarouselConfigForm">
+                    <div class="sectionTitleContainer flex align-items-center">
+                        <h2 class="sectionTitle">SeerrHomeCarousel</h2>
+                    </div>
+                    <p class="fieldDescription">
+                        Mostra caroselli di Nuovi Film e Nuove Serie TV nella Home di Jellyfin utilizzando SeerrFin e apre il modale di SeerrFin al clic.
+                    </p>
+
+                    <div class="verticalSection">
+                        <h3 class="sectionTitle">Carosello Film</h3>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="EnableMoviesCarousel" type="checkbox" is="emby-checkbox" />
+                                <span>Abilita carosello Film</span>
+                            </label>
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="MoviesTitle">Titolo sezione Film</label>
+                            <input id="MoviesTitle" type="text" is="emby-input" />
+                        </div>
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="MoviesSource">Sorgente Seerr Film</label>
+                            <select id="MoviesSource" is="emby-select" class="emby-select-withcolor emby-select">
+                                <option value="upcoming">Upcoming (Nuovi / In arrivo)</option>
+                                <option value="trending">Trending (Di tendenza)</option>
+                                <option value="popular">Popular (Popolari)</option>
+                                <option value="top-rated">Top Rated (Più votati)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="verticalSection">
+                        <h3 class="sectionTitle">Carosello Serie TV</h3>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="EnableTvCarousel" type="checkbox" is="emby-checkbox" />
+                                <span>Abilita carosello Serie TV</span>
+                            </label>
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="TvTitle">Titolo sezione Serie TV</label>
+                            <input id="TvTitle" type="text" is="emby-input" />
+                        </div>
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="TvSource">Sorgente Seerr Serie TV</label>
+                            <select id="TvSource" is="emby-select" class="emby-select-withcolor emby-select">
+                                <option value="upcoming">Upcoming (Nuove / In arrivo)</option>
+                                <option value="trending">Trending (Di tendenza)</option>
+                                <option value="popular">Popular (Popolari)</option>
+                                <option value="top-rated">Top Rated (Più votate)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="verticalSection">
+                        <h3 class="sectionTitle">Layout Home</h3>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="MaxItems">Numero massimo elementi per carosello (5 - 50)</label>
+                            <input id="MaxItems" type="number" min="5" max="50" is="emby-input" />
+                        </div>
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="HomePosition">Posizione nella Home</label>
+                            <select id="HomePosition" is="emby-select" class="emby-select-withcolor emby-select">
+                                <option value="afterMyMedia">Subito dopo "I miei media"</option>
+                                <option value="top">In cima alla Home</option>
+                                <option value="bottom">In fondo alla Home</option>
+                            </select>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="HideAvailable" type="checkbox" is="emby-checkbox" />
+                                <span>Nascondi titoli già disponibili su Jellyfin</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Salva</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            (function () {
+                const pluginId = 'a4d9f1c2-7e3b-4b8a-9c5d-2e6f1a0b3c4d';
+                const page = document.querySelector('#SeerrHomeCarouselConfigPage');
+                const form = document.querySelector('#SeerrHomeCarouselConfigForm');
+
+                page.addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        document.querySelector('#EnableMoviesCarousel').checked = config.EnableMoviesCarousel !== false;
+                        document.querySelector('#MoviesTitle').value = config.MoviesTitle || 'Nuovi Film su Seerr';
+                        document.querySelector('#MoviesSource').value = config.MoviesSource || 'upcoming';
+                        document.querySelector('#EnableTvCarousel').checked = config.EnableTvCarousel !== false;
+                        document.querySelector('#TvTitle').value = config.TvTitle || 'Nuove Serie TV su Seerr';
+                        document.querySelector('#TvSource').value = config.TvSource || 'upcoming';
+                        document.querySelector('#MaxItems').value = config.MaxItems || 20;
+                        document.querySelector('#HomePosition').value = config.HomePosition || 'afterMyMedia';
+                        document.querySelector('#HideAvailable').checked = config.HideAvailable === true;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        config.EnableMoviesCarousel = document.querySelector('#EnableMoviesCarousel').checked;
+                        config.MoviesTitle = document.querySelector('#MoviesTitle').value.trim() || 'Nuovi Film su Seerr';
+                        config.MoviesSource = document.querySelector('#MoviesSource').value;
+                        config.EnableTvCarousel = document.querySelector('#EnableTvCarousel').checked;
+                        config.TvTitle = document.querySelector('#TvTitle').value.trim() || 'Nuove Serie TV su Seerr';
+                        config.TvSource = document.querySelector('#TvSource').value;
+                        config.MaxItems = Math.max(5, Math.min(50, parseInt(document.querySelector('#MaxItems').value, 10) || 20));
+                        config.HomePosition = document.querySelector('#HomePosition').value;
+                        config.HideAvailable = document.querySelector('#HideAvailable').checked;
+
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
+                    });
+                });
+            })();
+        </script>
+    </div>
+</body>
+</html>

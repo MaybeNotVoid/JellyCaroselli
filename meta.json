@@ -1,0 +1,12 @@
+{
+  "guid": "a4d9f1c2-7e3b-4b8a-9c5d-2e6f1a0b3c4d",
+  "name": "SeerrHomeCarousel",
+  "description": "Adds New Movies and New TV Shows carousels to the Jellyfin Home screen and opens the integrated SeerrFin request modal on click.",
+  "overview": "Displays configurable horizontal carousels for New Movies and New TV Shows powered by SeerrFin on your Jellyfin Home screen. Clicking any card opens the SeerrFin details & request modal.",
+  "owner": "MaybeNotVoid",
+  "category": "General",
+  "targetAbi": "10.11.0.0",
+  "version": "1.0.0.0",
+  "changelog": "Initial release with 10.11.x and 12.x support.",
+  "timestamp": "2026-11-16T18:00:00Z"
+}
