@@ -82,6 +82,11 @@
                                 <span>Nascondi titoli già disponibili su Jellyfin</span>
                             </label>
                         </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key (v3) o Read Access Token (v4)</label>
+                            <input id="TmdbApiKey" type="password" is="emby-input" />
+                            <div class="fieldDescription">Usata dal server Jellyfin per caricare e mettere in cache le locandine direttamente da TMDB.</div>
+                        </div>
                     </div>
 
                     <div>
@@ -111,6 +116,7 @@
                         document.querySelector('#MaxItems').value = config.MaxItems || 20;
                         document.querySelector('#HomePosition').value = config.HomePosition || 'afterMyMedia';
                         document.querySelector('#HideAvailable').checked = config.HideAvailable === true;
+                        document.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
                         Dashboard.hideLoadingMsg();
                     });
                 });
@@ -128,6 +134,7 @@
                         config.MaxItems = Math.max(5, Math.min(50, parseInt(document.querySelector('#MaxItems').value, 10) || 20));
                         config.HomePosition = document.querySelector('#HomePosition').value;
                         config.HideAvailable = document.querySelector('#HideAvailable').checked;
+                        config.TmdbApiKey = document.querySelector('#TmdbApiKey').value.trim();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
                             Dashboard.processPluginConfigurationUpdateResult(result);

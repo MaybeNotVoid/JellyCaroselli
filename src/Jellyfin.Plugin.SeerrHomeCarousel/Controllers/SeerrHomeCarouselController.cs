@@ -1,12 +1,13 @@
 using System.Reflection;
 using System.Text;
+using Jellyfin.Plugin.SeerrHomeCarousel.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.SeerrHomeCarousel.Controllers;
 
 /// <summary>
-/// Serves injected frontend assets and client configuration for SeerrHomeCarousel.
+/// Serves injected frontend assets, TMDB posters, and client configuration for SeerrHomeCarousel.
 /// </summary>
 [ApiController]
 [Route("[controller]")]
@@ -14,6 +15,16 @@ public class SeerrHomeCarouselController : ControllerBase
 {
     private static readonly Assembly PluginAssembly = typeof(SeerrHomeCarouselPlugin).Assembly;
     private static readonly string ResourcePrefix = $"{typeof(SeerrHomeCarouselPlugin).Namespace}.Inject.";
+    private readonly TmdbPosterService _tmdbPosterService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SeerrHomeCarouselController"/> class.
+    /// </summary>
+    /// <param name="tmdbPosterService">TMDB poster service.</param>
+    public SeerrHomeCarouselController(TmdbPosterService tmdbPosterService)
+    {
+        _tmdbPosterService = tmdbPosterService;
+    }
 
     /// <summary>
     /// Serves the injected carousel JavaScript.
@@ -30,6 +41,23 @@ public class SeerrHomeCarouselController : ControllerBase
     [AllowAnonymous]
     [Produces("text/css")]
     public ActionResult GetCarouselCss() => ServeEmbeddedResource("carousel.css", "text/css; charset=utf-8");
+
+    /// <summary>
+    /// Proxies and caches poster images from TMDB using the configured API key/token.
+    /// </summary>
+    [HttpGet("poster/{mediaType}/{tmdbId:int}")]
+    [AllowAnonymous]
+    public async Task<ActionResult> GetTmdbPoster(string mediaType, int tmdbId, CancellationToken cancellationToken)
+    {
+        var result = await _tmdbPosterService.GetPosterAsync(mediaType, tmdbId, cancellationToken).ConfigureAwait(false);
+        if (result == null)
+        {
+            return NotFound();
+        }
+
+        Response.Headers.CacheControl = "public, max-age=86400";
+        return File(result.Value.Bytes, result.Value.ContentType);
+    }
 
     /// <summary>
     /// Returns the active carousel configuration for the web client.
@@ -49,7 +77,8 @@ public class SeerrHomeCarouselController : ControllerBase
             tvSource = NormalizeSource(cfg.TvSource),
             maxItems = Math.Clamp(cfg.MaxItems, 5, 50),
             homePosition = NormalizePosition(cfg.HomePosition),
-            hideAvailable = cfg.HideAvailable
+            hideAvailable = cfg.HideAvailable,
+            hasTmdbKey = !string.IsNullOrWhiteSpace(cfg.TmdbApiKey)
         });
     }
 

@@ -51,4 +51,9 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether items already available in Jellyfin should be hidden.
     /// </summary>
     public bool HideAvailable { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the TMDB API Key (v3) or Read Access Token (v4) used to load poster images.
+    /// </summary>
+    public string TmdbApiKey { get; set; } = string.Empty;
 }

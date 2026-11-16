@@ -41,7 +41,10 @@
         return ids ? (ids[key] || ids[key.toLowerCase()] || null) : null;
     }
 
-    function getPosterUrl(item) {
+    function getPosterUrl(item, mediaType, tmdbId, hasTmdbKey) {
+        if (hasTmdbKey && tmdbId && /^\d+$/.test(String(tmdbId))) {
+            return ApiClient.getUrl('SeerrHomeCarousel/poster/' + mediaType + '/' + tmdbId);
+        }
         if (window.seerrFinPlugin && typeof window.seerrFinPlugin.buildDiscoverPosterUrl === 'function') {
             const url = window.seerrFinPlugin.buildDiscoverPosterUrl(item);
             if (url) {
@@ -84,11 +87,11 @@
         console.warn('SeerrHomeCarousel • window.seerrFinModal non disponibile. Assicurati che SeerrFin sia attivo.');
     }
 
-    function createCard(item, mediaType) {
+    function createCard(item, mediaType, hasTmdbKey) {
         const tmdbId = getProviderId(item, 'Tmdb') || item.Id;
         const title = item.Name || item.OriginalTitle || 'Senza titolo';
         const year = item.ProductionYear ? String(item.ProductionYear) : '';
-        const posterUrl = getPosterUrl(item);
+        const posterUrl = getPosterUrl(item, mediaType, tmdbId, hasTmdbKey);
         const statusInfo = getStatusInfo(item);
 
         const card = document.createElement('div');
@@ -169,7 +172,7 @@
         return card;
     }
 
-    function buildSection(title, items, mediaType, hideAvailable, maxItems) {
+    function buildSection(title, items, mediaType, hideAvailable, maxItems, hasTmdbKey) {
         const filtered = (items || []).filter(function (item) {
             if (!hideAvailable) {
                 return true;
@@ -216,7 +219,7 @@
         scroller.className = 'emby-scroller itemsContainer scrollSlider focuscontainer-x padded-left padded-right shc-scroller';
 
         filtered.forEach(function (item) {
-            scroller.appendChild(createCard(item, mediaType));
+            scroller.appendChild(createCard(item, mediaType, hasTmdbKey));
         });
 
         prevBtn.addEventListener('click', function () {
@@ -289,7 +292,7 @@
                 tasks.push(
                     fetchJson('SeerrFin/discover/movies/' + cfg.moviesSource + '?limit=' + cfg.maxItems)
                         .then(function (res) {
-                            return buildSection(cfg.moviesTitle, res && res.Items, 'movie', cfg.hideAvailable, cfg.maxItems);
+                            return buildSection(cfg.moviesTitle, res && res.Items, 'movie', cfg.hideAvailable, cfg.maxItems, cfg.hasTmdbKey);
                         })
                         .catch(function () { return null; })
                 );
@@ -298,7 +301,7 @@
                 tasks.push(
                     fetchJson('SeerrFin/discover/tv/' + cfg.tvSource + '?limit=' + cfg.maxItems)
                         .then(function (res) {
-                            return buildSection(cfg.tvTitle, res && res.Items, 'tv', cfg.hideAvailable, cfg.maxItems);
+                            return buildSection(cfg.tvTitle, res && res.Items, 'tv', cfg.hideAvailable, cfg.maxItems, cfg.hasTmdbKey);
                         })
                         .catch(function () { return null; })
                 );
