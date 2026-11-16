@@ -6,6 +6,7 @@
     "overview": "Displays configurable horizontal carousels for New Movies and New TV Shows powered by SeerrFin on your Jellyfin Home screen. Clicking any card opens the SeerrFin details & request modal.",
     "owner": "MaybeNotVoid",
     "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/MaybeNotVoid/JellyCaroselli/main/thumb.png",
     "repositoryUrl": "https://github.com/MaybeNotVoid/JellyCaroselli",
     "versions": []
   }

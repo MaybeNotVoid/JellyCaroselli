@@ -75,7 +75,7 @@ jobs:
               '.version = $ver | .targetAbi = $abi | .timestamp = $ts' \
               meta.json > "$OUT_DIR/meta.json"
 
-            (cd "$OUT_DIR" && zip -r "../$ZIP_NAME" Jellyfin.Plugin.SeerrHomeCarousel.dll meta.json)
+            (cd "$OUT_DIR" && zip -r "../$ZIP_NAME" Jellyfin.Plugin.SeerrHomeCarousel.dll meta.json thumb.png)
             md5sum "dist/$ZIP_NAME" | awk '{print toupper($1)}'
           }
 
