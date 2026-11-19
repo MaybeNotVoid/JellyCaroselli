@@ -41,25 +41,47 @@
         return ids ? (ids[key] || ids[key.toLowerCase()] || null) : null;
     }
 
-    function getPosterUrl(item, mediaType, tmdbId, hasTmdbKey) {
-        if (hasTmdbKey && tmdbId && /^\d+$/.test(String(tmdbId))) {
-            return ApiClient.getUrl('SeerrHomeCarousel/poster/' + mediaType + '/' + tmdbId);
-        }
-        if (window.seerrFinPlugin && typeof window.seerrFinPlugin.buildDiscoverPosterUrl === 'function') {
-            const url = window.seerrFinPlugin.buildDiscoverPosterUrl(item);
-            if (url) {
-                return url;
+    function getPosterCandidates(item, mediaType, tmdbId, hasTmdbKey) {
+        const urls = [];
+        function addUrl(u) {
+            if (u && typeof u === 'string' && urls.indexOf(u) === -1) {
+                urls.push(u);
             }
         }
-        const seerrPoster = getProviderId(item, 'JellyseerrPoster');
-        if (seerrPoster) {
-            return seerrPoster;
+
+        if (hasTmdbKey && tmdbId && /^\d+$/.test(String(tmdbId))) {
+            addUrl(ApiClient.getUrl('SeerrHomeCarousel/poster/' + mediaType + '/' + tmdbId));
         }
+
         const tmdbPath = getProviderId(item, 'TmdbPosterPath');
         if (tmdbPath) {
-            return 'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + tmdbPath;
+            const norm = tmdbPath.charAt(0) === '/' ? tmdbPath : '/' + tmdbPath;
+            addUrl('https://image.tmdb.org/t/p/w600_and_h900_bestv2' + norm);
         }
-        return null;
+
+        if (window.seerrFinPlugin && typeof window.seerrFinPlugin.buildDiscoverPosterUrl === 'function') {
+            addUrl(window.seerrFinPlugin.buildDiscoverPosterUrl(item));
+        }
+
+        let seerrPoster = getProviderId(item, 'JellyseerrPoster');
+        if (seerrPoster) {
+            if (seerrPoster.indexOf('http') !== 0) {
+                seerrPoster = ApiClient.getUrl(seerrPoster.replace(/^\//, ''));
+            }
+            addUrl(seerrPoster);
+        }
+
+        const backdropPath = getProviderId(item, 'TmdbBackdropPath');
+        if (backdropPath) {
+            const normB = backdropPath.charAt(0) === '/' ? backdropPath : '/' + backdropPath;
+            addUrl('https://image.tmdb.org/t/p/w780' + normB);
+        }
+
+        if (!hasTmdbKey && tmdbId && /^\d+$/.test(String(tmdbId))) {
+            addUrl(ApiClient.getUrl('SeerrHomeCarousel/poster/' + mediaType + '/' + tmdbId));
+        }
+
+        return urls;
     }
 
     function getStatusInfo(item) {
@@ -91,7 +113,7 @@
         const tmdbId = getProviderId(item, 'Tmdb') || item.Id;
         const title = item.Name || item.OriginalTitle || 'Senza titolo';
         const year = item.ProductionYear ? String(item.ProductionYear) : '';
-        const posterUrl = getPosterUrl(item, mediaType, tmdbId, hasTmdbKey);
+        const posterCandidates = getPosterCandidates(item, mediaType, tmdbId, hasTmdbKey);
         const statusInfo = getStatusInfo(item);
 
         const card = document.createElement('div');
@@ -110,13 +132,28 @@
 
         const imageContainer = document.createElement('div');
         imageContainer.className = 'cardImageContainer coveredImage cardContent itemAction shc-poster-wrap';
-        if (posterUrl) {
-            imageContainer.style.backgroundImage = 'url("' + posterUrl.replace(/"/g, '\\"') + '")';
-        } else {
-            const fallback = document.createElement('div');
-            fallback.className = 'shc-poster-fallback';
-            fallback.textContent = title;
-            imageContainer.appendChild(fallback);
+
+        const fallback = document.createElement('div');
+        fallback.className = 'shc-poster-fallback';
+        fallback.textContent = title;
+        imageContainer.appendChild(fallback);
+
+        if (posterCandidates.length > 0) {
+            let candidateIdx = 0;
+            const img = document.createElement('img');
+            img.className = 'shc-poster-img';
+            img.loading = 'lazy';
+            img.alt = title;
+            img.src = posterCandidates[0];
+            img.addEventListener('error', function () {
+                candidateIdx++;
+                if (candidateIdx < posterCandidates.length) {
+                    img.src = posterCandidates[candidateIdx];
+                } else {
+                    img.remove();
+                }
+            });
+            imageContainer.appendChild(img);
         }
 
         if (statusInfo.badge) {

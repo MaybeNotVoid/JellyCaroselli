@@ -53,6 +53,12 @@ jobs:
           VERSION="${{ steps.ver.outputs.version }}"
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           CSPROJ="src/Jellyfin.Plugin.SeerrHomeCarousel/Jellyfin.Plugin.SeerrHomeCarousel.csproj"
+          ASM_INFO="src/Jellyfin.Plugin.SeerrHomeCarousel/Properties/AssemblyInfo.cs"
+
+          sed -i "s/<Version>.*<\/Version>/<Version>${VERSION}<\/Version>/" "$CSPROJ"
+          sed -i "s/AssemblyVersion(\".*\")/AssemblyVersion(\"${VERSION}\")/" "$ASM_INFO"
+          sed -i "s/AssemblyFileVersion(\".*\")/AssemblyFileVersion(\"${VERSION}\")/" "$ASM_INFO"
+
           mkdir -p dist
 
           build_target() {

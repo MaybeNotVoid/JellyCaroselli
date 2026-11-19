@@ -152,7 +152,7 @@ public class TmdbPosterService
 
             string json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             var obj = JObject.Parse(json);
-            return obj.Value<string>("poster_path");
+            return obj.Value<string>("poster_path") ?? obj.Value<string>("backdrop_path");
         }
         catch (Exception ex)
         {
