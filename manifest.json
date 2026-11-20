@@ -10,6 +10,24 @@
     "repositoryUrl": "https://github.com/MaybeNotVoid/JellyCaroselli",
     "versions": [
       {
+        "version": "1.0.4.0",
+        "changelog": "Release 1.0.4.0 (Jellyfin 12.x)",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/MaybeNotVoid/JellyCaroselli/releases/download/v1.0.4.0/Jellyfin.Plugin.SeerrHomeCarousel_12.0.0.zip",
+        "checksum": "92E8EAD67FD809D9882EEC2A8B66DBE8",
+        "timestamp": "2026-11-20T13:21:56Z",
+        "dependencies": []
+      },
+      {
+        "version": "1.0.4.0",
+        "changelog": "Release 1.0.4.0 (Jellyfin 10.11.x)",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/MaybeNotVoid/JellyCaroselli/releases/download/v1.0.4.0/Jellyfin.Plugin.SeerrHomeCarousel_10.11.0.zip",
+        "checksum": "9CD426AF801C0FEAF2004D8106E3781A",
+        "timestamp": "2026-11-20T13:21:56Z",
+        "dependencies": []
+      },
+      {
         "version": "1.0.3.0",
         "changelog": "Release 1.0.3.0 (Jellyfin 12.x)",
         "targetAbi": "12.0.0.0",
