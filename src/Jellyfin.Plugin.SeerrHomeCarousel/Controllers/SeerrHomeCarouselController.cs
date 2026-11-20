@@ -96,8 +96,8 @@ public class SeerrHomeCarouselController : ControllerBase
 
     private static string NormalizeSource(string? source) => source switch
     {
-        "trending" or "popular" or "top-rated" or "upcoming" => source,
-        _ => "upcoming"
+        "daily" or "trending" or "popular" or "top-rated" => source,
+        _ => "daily"
     };
 
     private static string NormalizePosition(string? position) => position switch

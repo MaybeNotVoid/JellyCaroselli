@@ -29,12 +29,12 @@
                             <input id="MoviesTitle" type="text" is="emby-input" />
                         </div>
                         <div class="selectContainer">
-                            <label class="selectLabel" for="MoviesSource">Sorgente Seerr Film</label>
+                            <label class="selectLabel" for="MoviesSource">Sorgente Seerr Film (solo già usciti)</label>
                             <select id="MoviesSource" is="emby-select" class="emby-select-withcolor emby-select">
-                                <option value="upcoming">Upcoming (Nuovi / In arrivo)</option>
-                                <option value="trending">Trending (Di tendenza)</option>
-                                <option value="popular">Popular (Popolari)</option>
-                                <option value="top-rated">Top Rated (Più votati)</option>
+                                <option value="daily">Selezione Giornaliera (20 nuovi film al giorno, già usciti)</option>
+                                <option value="trending">Trending (Di tendenza, già usciti)</option>
+                                <option value="popular">Popular (Popolari, già usciti)</option>
+                                <option value="top-rated">Top Rated (Più votati, già usciti)</option>
                             </select>
                         </div>
                     </div>
@@ -52,12 +52,12 @@
                             <input id="TvTitle" type="text" is="emby-input" />
                         </div>
                         <div class="selectContainer">
-                            <label class="selectLabel" for="TvSource">Sorgente Seerr Serie TV</label>
+                            <label class="selectLabel" for="TvSource">Sorgente Seerr Serie TV (solo già uscite)</label>
                             <select id="TvSource" is="emby-select" class="emby-select-withcolor emby-select">
-                                <option value="upcoming">Upcoming (Nuove / In arrivo)</option>
-                                <option value="trending">Trending (Di tendenza)</option>
-                                <option value="popular">Popular (Popolari)</option>
-                                <option value="top-rated">Top Rated (Più votate)</option>
+                                <option value="daily">Selezione Giornaliera (20 nuove serie al giorno, già uscite)</option>
+                                <option value="trending">Trending (Di tendenza, già uscite)</option>
+                                <option value="popular">Popular (Popolari, già uscite)</option>
+                                <option value="top-rated">Top Rated (Più votate, già uscite)</option>
                             </select>
                         </div>
                     </div>
@@ -109,10 +109,10 @@
                     ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         document.querySelector('#EnableMoviesCarousel').checked = config.EnableMoviesCarousel !== false;
                         document.querySelector('#MoviesTitle').value = config.MoviesTitle || 'Nuovi Film su Seerr';
-                        document.querySelector('#MoviesSource').value = config.MoviesSource || 'upcoming';
+                        document.querySelector('#MoviesSource').value = (!config.MoviesSource || config.MoviesSource === 'upcoming') ? 'daily' : config.MoviesSource;
                         document.querySelector('#EnableTvCarousel').checked = config.EnableTvCarousel !== false;
                         document.querySelector('#TvTitle').value = config.TvTitle || 'Nuove Serie TV su Seerr';
-                        document.querySelector('#TvSource').value = config.TvSource || 'upcoming';
+                        document.querySelector('#TvSource').value = (!config.TvSource || config.TvSource === 'upcoming') ? 'daily' : config.TvSource;
                         document.querySelector('#MaxItems').value = config.MaxItems || 20;
                         document.querySelector('#HomePosition').value = config.HomePosition || 'afterMyMedia';
                         document.querySelector('#HideAvailable').checked = config.HideAvailable === true;

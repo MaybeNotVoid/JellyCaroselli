@@ -18,9 +18,9 @@ public class PluginConfiguration : BasePluginConfiguration
     public string MoviesTitle { get; set; } = "Nuovi Film su Seerr";
 
     /// <summary>
-    /// Gets or sets the SeerrFin discovery feed for Movies (upcoming, trending, popular, top-rated).
+    /// Gets or sets the SeerrFin discovery feed for Movies (daily, trending, popular, top-rated).
     /// </summary>
-    public string MoviesSource { get; set; } = "upcoming";
+    public string MoviesSource { get; set; } = "daily";
 
     /// <summary>
     /// Gets or sets a value indicating whether the New TV Shows carousel is enabled.
@@ -33,9 +33,9 @@ public class PluginConfiguration : BasePluginConfiguration
     public string TvTitle { get; set; } = "Nuove Serie TV su Seerr";
 
     /// <summary>
-    /// Gets or sets the SeerrFin discovery feed for TV Shows (upcoming, trending, popular, top-rated).
+    /// Gets or sets the SeerrFin discovery feed for TV Shows (daily, trending, popular, top-rated).
     /// </summary>
-    public string TvSource { get; set; } = "upcoming";
+    public string TvSource { get; set; } = "daily";
 
     /// <summary>
     /// Gets or sets the maximum number of items per carousel.

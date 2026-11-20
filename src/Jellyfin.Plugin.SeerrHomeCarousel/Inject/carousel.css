@@ -1,5 +1,8 @@
 .shc-section {
-    margin-bottom: 1.5em;
+    margin-bottom: 1.8em;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .shc-header {
@@ -7,49 +10,96 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    padding-right: 3.3%;
+    margin-bottom: 0.45em;
 }
 
 .shc-scroll-controls {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-right: 2%;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .shc-scroll-btn {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
     cursor: pointer;
+    transition: background 0.18s ease, transform 0.15s ease;
+    padding: 0;
+}
+
+.shc-scroll-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.06);
+}
+
+.shc-scroller-wrap {
+    position: relative;
+    width: 100%;
 }
 
 .shc-scroller {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    gap: 0.4em;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    gap: 0.65em;
+    padding-top: 4px;
+    padding-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    user-select: none;
+    cursor: grab;
+}
+
+.shc-scroller.shc-dragging {
+    cursor: grabbing;
+    scroll-behavior: auto;
 }
 
 .shc-scroller::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+}
+
+.shc-scroller::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.shc-scroller::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+}
+
+.shc-scroller::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.38);
 }
 
 .shc-card {
-    flex: 0 0 auto;
-    width: 11.5em;
+    flex: 0 0 auto !important;
+    width: 11.2em !important;
+    min-width: 11.2em !important;
+    max-width: 11.2em !important;
     cursor: pointer;
 }
 
 @media (max-width: 768px) {
     .shc-card {
-        width: 9.2em;
+        width: 9em !important;
+        min-width: 9em !important;
+        max-width: 9em !important;
     }
 }
 
@@ -73,6 +123,7 @@
     object-fit: cover;
     display: block;
     z-index: 1;
+    pointer-events: none;
 }
 
 .shc-poster-fallback {
