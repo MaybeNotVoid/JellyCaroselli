@@ -209,56 +209,51 @@
     }
 
     function fetchReleasedPool(mediaType, source, targetCount, hideAvailable) {
-        const today = getTodayDateString();
         const seed = getDaySeed(mediaType);
-        const page1 = (seed % 5) + 1;
-        const page2 = ((seed + 2) % 5) + 1;
-        const dateParam = mediaType === 'tv' ? 'firstAirDateLte=' + today : 'primaryReleaseDateLte=' + today;
-        const dateSort = mediaType === 'tv' ? 'first_air_date.desc' : 'primary_release_date.desc';
         const endpointPrefix = mediaType === 'tv' ? 'SeerrFin/discover/tv/' : 'SeerrFin/discover/movies/';
 
-        const requests = [];
+        return fetchJson('SeerrHomeCarousel/daily/' + mediaType)
+            .catch(function () { return null; })
+            .then(function (primaryRes) {
+                const primaryItems = extractItemsList(primaryRes);
+                if (primaryItems.length >= targetCount) {
+                    return primaryItems.slice(0, targetCount);
+                }
 
-        if (source === 'daily' || source === 'upcoming' || !source) {
-            requests.push(
-                fetchJson('SeerrFin/discover/filtered/' + mediaType + '?sortBy=popularity.desc&' + dateParam + '&voteCountGte=10&page=' + page1).catch(function () { return null; }),
-                fetchJson('SeerrFin/discover/filtered/' + mediaType + '?sortBy=' + dateSort + '&' + dateParam + '&voteCountGte=15&page=' + page2).catch(function () { return null; }),
-                fetchJson(endpointPrefix + 'trending?startIndex=0&limit=40').catch(function () { return null; }),
-                fetchJson(endpointPrefix + 'popular?startIndex=' + ((page1 - 1) * 20) + '&limit=40').catch(function () { return null; })
-            );
-        } else {
-            const offset = ((page1 - 1) * 10);
-            requests.push(
-                fetchJson(endpointPrefix + source + '?startIndex=' + offset + '&limit=50').catch(function () { return null; }),
-                fetchJson(endpointPrefix + source + '?startIndex=0&limit=50').catch(function () { return null; }),
-                fetchJson('SeerrFin/discover/filtered/' + mediaType + '?sortBy=popularity.desc&' + dateParam + '&voteCountGte=10&page=' + page1).catch(function () { return null; })
-            );
-        }
+                const fallbackRequests = [
+                    fetchJson(endpointPrefix + 'popular?startIndex=0&limit=40').catch(function () { return null; }),
+                    fetchJson(endpointPrefix + 'trending?startIndex=0&limit=40').catch(function () { return null; }),
+                    fetchJson(endpointPrefix + 'top-rated?startIndex=0&limit=40').catch(function () { return null; })
+                ];
 
-        return Promise.all(requests).then(function (responses) {
-            const seen = {};
-            const pool = [];
+                return Promise.all(fallbackRequests).then(function (responses) {
+                    const seen = {};
+                    const pool = [];
 
-            responses.forEach(function (res) {
-                extractItemsList(res).forEach(function (item) {
-                    const tmdbId = getProviderId(item, 'Tmdb') || item.Id;
-                    if (!tmdbId || seen[tmdbId]) {
-                        return;
+                    function addCandidate(item) {
+                        const tmdbId = getProviderId(item, 'Tmdb') || item.Id;
+                        if (!tmdbId || seen[tmdbId]) {
+                            return;
+                        }
+                        if (!isAlreadyReleased(item)) {
+                            return;
+                        }
+                        if (hideAvailable && getStatusInfo(item).code === 5) {
+                            return;
+                        }
+                        seen[tmdbId] = true;
+                        pool.push(item);
                     }
-                    if (!isAlreadyReleased(item)) {
-                        return;
-                    }
-                    if (hideAvailable && getStatusInfo(item).code === 5) {
-                        return;
-                    }
-                    seen[tmdbId] = true;
-                    pool.push(item);
+
+                    primaryItems.forEach(addCandidate);
+                    responses.forEach(function (res) {
+                        extractItemsList(res).forEach(addCandidate);
+                    });
+
+                    const shuffled = deterministicShuffle(pool, seed);
+                    return shuffled.slice(0, targetCount);
                 });
             });
-
-            const shuffled = deterministicShuffle(pool, seed);
-            return shuffled.slice(0, targetCount);
-        });
     }
 
     function openSeerrFinModal(tmdbId, mediaType) {

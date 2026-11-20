@@ -43,6 +43,29 @@ public class SeerrHomeCarouselController : ControllerBase
     public ActionResult GetCarouselCss() => ServeEmbeddedResource("carousel.css", "text/css; charset=utf-8");
 
     /// <summary>
+    /// Returns the daily rotating list of already-released Movies or TV Shows (default 20).
+    /// </summary>
+    [HttpGet("daily/{mediaType}")]
+    [Authorize]
+    public async Task<ActionResult> GetDailyReleasedItems(string mediaType, CancellationToken cancellationToken)
+    {
+        var cfg = SeerrHomeCarouselPlugin.Instance.Configuration;
+        bool isTv = string.Equals(mediaType, "tv", StringComparison.OrdinalIgnoreCase);
+        string source = NormalizeSource(isTv ? cfg.TvSource : cfg.MoviesSource);
+        int count = Math.Clamp(cfg.MaxItems, 5, 50);
+
+        var items = await _tmdbPosterService
+            .GetDailyReleasedItemsAsync(isTv ? "tv" : "movie", source, count, cfg.HideAvailable, cancellationToken)
+            .ConfigureAwait(false);
+
+        return Ok(new
+        {
+            Items = items,
+            TotalRecordCount = items.Count
+        });
+    }
+
+    /// <summary>
     /// Proxies and caches poster images from TMDB using the configured API key/token.
     /// </summary>
     [HttpGet("poster/{mediaType}/{tmdbId:int}")]
